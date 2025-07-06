@@ -280,7 +280,7 @@ async function handleLogoUpload(event) {
     
     // อัพเดต logoUrl ด้วย URL จาก server
     const config = useRuntimeConfig()
-    const API_BASE_URL = config.public.apiBase || 'http://localhost:3000/api'
+    const API_BASE_URL = config.public.apiBase || 'http://localhost:4000/api'
     const serverUrl = API_BASE_URL.replace('/api', '')
     props.globalSettings.system_logo = serverUrl + response.data.logoUrl
 
