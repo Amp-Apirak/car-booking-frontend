@@ -5,7 +5,8 @@
       "Bash(sudo npm i -g @anthropic-ai/claude-code)",
       "Bash(npm config:*)",
       "Bash(mkdir:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }

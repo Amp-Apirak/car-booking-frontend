@@ -4,10 +4,11 @@
   "logout": "Logout",
   "menu": {
     "index": "Home",
-    "dashboard": "Dashboard",
+    "dashboard": "Dashboard", 
     "bookings": "Manage Bookings",
     "cars": "Manage Cars",
     "customers": "Customers",
+    "drivers": "Drivers",
     "reports": "Reports",
     "admin": "System Management",
     "settings": "System Settings",
@@ -32,7 +33,7 @@
     "reports": {
       "daily": "Daily Report",
       "monthly": "Monthly Report",
-      "yearly": "Yearly Report",
+      "yearly": "Yearly Report", 
       "statistics": "Usage Statistics"
     },
     "admin": {
