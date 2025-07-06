@@ -1,37 +1,34 @@
 // middleware/auth.js
-// Mock authentication middleware สำหรับทดสอบ
+// Real authentication middleware
 
 export default function (to, from) {
-  // ตรวจสอบว่ามี auth token หรือไม่
-  const token = useCookie('auth-token', {
-    default: () => null,
-    maxAge: 60 * 60 * 24 * 7 // 7 วัน
-  })
-
-  // ถ้าไม่มี token ให้สร้าง mock token สำหรับทดสอบ
-  if (!token.value) {
-    // สร้าง mock JWT token สำหรับทดสอบ (ใน production ต้องได้จาก login API)
-    const mockToken = 'mock-jwt-token-' + Date.now()
-    token.value = mockToken
-    console.log('สร้าง mock auth token สำหรับทดสอบ:', mockToken)
+  // Skip auth check during server-side rendering
+  if (process.server) {
+    return
   }
 
-  // ใน production จะต้องตรวจสอบ token กับ server
-  // ตอนนี้ mock ว่าเป็น admin
-  const user = {
-    user_id: 1,
-    name: 'Admin User',
-    role: 'admin',
-    permissions: ['system:write', 'users:manage']
+  // ใช้ useAuth composable
+  const { isAuthenticated, getCurrentUser } = useAuth()
+
+  console.log('กำลังตรวจสอบการ authentication...')
+
+  // ตรวจสอบการ authenticate
+  if (!isAuthenticated()) {
+    console.log('ไม่ได้รับการ authenticate, เปลี่ยนเส้นทางไปหน้า login')
+    return navigateTo('/login')
   }
 
-  // เก็บข้อมูลผู้ใช้ใน cookie สำหรับใช้ในหน้าอื่นๆ
-  const userCookie = useCookie('user-data', {
-    default: () => null,
-    maxAge: 60 * 60 * 24 * 7
-  })
-  
-  if (!userCookie.value) {
-    userCookie.value = JSON.stringify(user)
+  // ตรวจสอบข้อมูลผู้ใช้
+  const currentUser = getCurrentUser()
+  if (!currentUser || !currentUser.user_id) {
+    console.log('ข้อมูลผู้ใช้ไม่ถูกต้อง, เปลี่ยนเส้นทางไปหน้า login')
+    
+    // ลบข้อมูลที่เสียหาย
+    const { logout } = useAuth()
+    logout()
+    
+    return navigateTo('/login')
   }
+
+  console.log('Authentication สำเร็จ - ผู้ใช้:', currentUser.username || currentUser.name)
 }

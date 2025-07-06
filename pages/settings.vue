@@ -2,6 +2,21 @@
   <div class="min-h-screen bg-gray-50">
     <!-- Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Debug Info & Logout -->
+      <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <div class="flex justify-between items-center">
+          <div class="text-sm">
+            <strong>ผู้ใช้:</strong> {{ currentUser.name }} ({{ currentUser.role }})
+          </div>
+          <UButton
+            label="ออกจากระบบ"
+            color="red"
+            variant="outline"
+            size="xs"
+            @click="logout"
+          />
+        </div>
+      </div>
       <!-- Settings Tabs -->
       <div class="mb-8">
         <UTabs v-model="activeTab" :items="settingsTabItems" class="w-full" />
@@ -83,6 +98,11 @@ import AppearanceSettings from '~/components/settings/AppearanceSettings.vue'
 import BackupSettings from '~/components/settings/BackupSettings.vue'
 import MaintenanceSettings from '~/components/settings/MaintenanceSettings.vue'
 
+// ใช้ Auth Middleware
+definePageMeta({
+  middleware: 'auth'
+})
+
 const { t } = useI18n()
 
 const activeTab = ref('general')
@@ -95,21 +115,24 @@ const currentUser = reactive({
   permissions: ['system:write', 'users:manage']
 })
 
-// Load user data from cookie (set by auth middleware)
+// ใช้ real auth
+const { getCurrentUser, isAuthenticated } = useAuth()
+
+// Load user data from real auth
 onMounted(() => {
-  const userCookie = useCookie('user-data')
-  if (userCookie.value) {
-    try {
-      const userData = JSON.parse(userCookie.value)
+  if (isAuthenticated()) {
+    const userData = getCurrentUser()
+    if (userData) {
       Object.assign(currentUser, userData)
-    } catch (error) {
-      console.error('Error parsing user data:', error)
+      console.log('โหลดข้อมูลผู้ใช้สำเร็จ:', currentUser)
     }
   }
 })
 
 const isAdmin = computed(() => {
-  return currentUser.role === 'admin' || currentUser.permissions.includes('system:write')
+  return currentUser.role === 'admin' || 
+         currentUser.role === 'administrator' ||
+         (currentUser.permissions && currentUser.permissions.includes('system:write'))
 })
 
 // Global Settings (ส่วนที่มีผลกับทุกคนในระบบ)
@@ -344,6 +367,29 @@ function resetThemeSettings() {
   globalSettings.theme.fontWeight = '400'
   
   console.log('รีเซ็ตการตั้งค่าธีมเป็นค่าเริ่มต้น')
+}
+
+// Logout Function  
+const { logout: apiLogout } = useAuth()
+
+async function logout() {
+  try {
+    await apiLogout()
+    
+    const toast = useToast()
+    toast.add({
+      title: 'ออกจากระบบสำเร็จ',
+      description: 'ขอบคุณที่ใช้บริการ',
+      color: 'green'
+    })
+    
+    // เปลี่ยนเส้นทางไปหน้า login
+    await navigateTo('/login')
+  } catch (error) {
+    console.error('Logout error:', error)
+    // ถึงแม้จะเกิด error ก็ยังให้ redirect ไปหน้า login
+    await navigateTo('/login')
+  }
 }
 
 // Load Global Settings on Mount
