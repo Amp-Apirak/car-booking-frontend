@@ -1,0 +1,7 @@
+@import "tailwindcss";
+@import "@nuxt/ui-pro";
+
+/* กำหนดฟอนต์หลักสำหรับธีม */
+@theme {
+  --font-sans: "Kodchasan", sans-serif;
+}

@@ -1,0 +1,117 @@
+{
+  "welcome": "ยินดีต้อนรับสู่ระบบ",
+  "login": "เข้าสู่ระบบ",
+  "logout": "ออกจากระบบ",
+  "menu": {
+    "index": "หน้าหลัก",
+    "dashboard": "แดชบอร์ด",
+    "bookings": "จัดการการจอง",
+    "cars": "จัดการรถยนต์",
+    "customers": "ลูกค้า",
+    "reports": "รายงาน",
+    "admin": "จัดการระบบ",
+    "settings": "ตั้งค่าระบบ",
+    "help": "ช่วยเหลือ",
+    "profile": "ข้อมูลส่วนตัว"
+  },
+  "submenu": {
+    "bookings": {
+      "new": "สร้างการจองใหม่",
+      "pending": "รอการยืนยัน",
+      "confirmed": "ยืนยันแล้ว",
+      "completed": "เสร็จสิ้น",
+      "cancelled": "ยกเลิก"
+    },
+    "cars": {
+      "list": "รายการรถ",
+      "brand": "แบรนด์",
+      "model": "รุ่น",
+      "accessories": "อุปกรณ์เพิ่มเติม",
+      "insurance": "ประกันภัย"
+    },
+    "reports": {
+      "daily": "รายงานรายวัน",
+      "monthly": "รายงานรายเดือน",
+      "yearly": "รายงานรายปี",
+      "statistics": "สถิติการใช้งาน"
+    },
+    "admin": {
+      "departments": "หน่วยงาน",
+      "users": "ผู้ใช้งานระบบ",
+      "drivers": "พนักงานขับรถ",
+      "roles": "บทบาท",
+      "permissions": "สิทธิ์การใช้งาน",
+      "approvals": "การอนุมัติ"
+    }
+  },
+  "system": {
+    "name": "ระบบจองรถยนต์",
+    "tagline": "จัดการการจองอย่างมืออาชีพ",
+    "search": "ค้นหา...",
+    "online": "ออนไลน์",
+    "admin": "ผู้ดูแลระบบ"
+  },
+  "settings": {
+    "title": "ตั้งค่าระบบ",
+    "description": "จัดการการตั้งค่าต่างๆ ของระบบ",
+    "general": {
+      "title": "ตั้งค่าทั่วไป",
+      "system_name": "ชื่อระบบ",
+      "system_tagline": "คำอธิบายระบบ",
+      "language": "ภาษา",
+      "timezone": "เขตเวลา",
+      "currency": "สกุลเงิน",
+      "date_format": "รูปแบบวันที่"
+    },
+    "notification": {
+      "title": "การแจ้งเตือน",
+      "email": "อีเมล",
+      "sms": "SMS",
+      "push": "Push Notification",
+      "booking_alerts": "การแจ้งเตือนการจอง",
+      "payment_alerts": "การแจ้งเตือนการชำระเงิน",
+      "maintenance_alerts": "การแจ้งเตือนการบำรุงรักษา"
+    },
+    "security": {
+      "title": "ความปลอดภัย",
+      "two_factor": "การยืนยันตัวตน 2 ขั้นตอน",
+      "password_policy": "นโยบายรหัสผ่าน",
+      "session_timeout": "หมดเวลาเซสชัน",
+      "login_attempts": "จำนวนครั้งในการเข้าสู่ระบบ",
+      "audit_log": "บันทึกการตรวจสอบ"
+    },
+    "appearance": {
+      "title": "รูปลักษณ์",
+      "theme": "ธีม",
+      "primary_color": "สีหลัก",
+      "logo": "โลโก้",
+      "favicon": "ไอคอนเว็บไซต์",
+      "sidebar_position": "ตำแหน่งเมนู"
+    },
+    "backup": {
+      "title": "การสำรองข้อมูล",
+      "auto_backup": "การสำรองอัตโนมัติ",
+      "backup_frequency": "ความถี่ในการสำรอง",
+      "backup_location": "ตำแหน่งการสำรอง",
+      "last_backup": "การสำรองล่าสุด"
+    },
+    "maintenance": {
+      "title": "การบำรุงรักษา",
+      "maintenance_mode": "โหมดบำรุงรักษา",
+      "system_status": "สถานะระบบ",
+      "database_optimization": "ปรับปรุงฐานข้อมูล",
+      "cache_management": "จัดการ Cache",
+      "log_management": "จัดการ Log"
+    },
+    "actions": {
+      "save": "บันทึก",
+      "cancel": "ยกเลิก",
+      "reset": "รีเซ็ต",
+      "export": "ส่งออก",
+      "import": "นำเข้า",
+      "test": "ทดสอบ",
+      "backup_now": "สำรองข้อมูลทันที",
+      "optimize_now": "ปรับปรุงทันที"
+    }
+  }
+}
