@@ -3,6 +3,13 @@ export default defineNuxtConfig({
   ssr: false,
 
   modules: ["@nuxt/ui-pro", "@nuxtjs/i18n"],
+  
+  // Runtime config สำหรับ API URL
+  runtimeConfig: {
+    public: {
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:3000/api'
+    }
+  },
   uiPro: {
     // อ่านค่า license จากตัวแปรแปลกๆ เช่น MY_ENV_VARIABLE
     license: process.env.NUXT_UI_PRO_LICENSE,

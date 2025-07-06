@@ -38,9 +38,9 @@
             <div class="space-y-4">
               <!-- Current Logo Preview -->
               <div class="flex items-center justify-center w-32 h-32 bg-white border-2 border-dashed border-gray-300 rounded-lg">
-                <div v-if="globalSettings.logoUrl" class="relative">
+                <div v-if="globalSettings.system_logo" class="relative">
                   <img 
-                    :src="globalSettings.logoUrl" 
+                    :src="globalSettings.system_logo" 
                     alt="Logo" 
                     class="w-full h-full object-contain rounded-lg"
                   />
@@ -63,15 +63,16 @@
               <!-- Logo Upload Button -->
               <div class="flex gap-2">
                 <UButton
-                  :label="globalSettings.logoUrl ? 'เปลี่ยนโลโก้' : 'อัพโหลดโลโก้'"
+                  :label="globalSettings.system_logo ? 'เปลี่ยนโลโก้' : 'อัพโหลดโลโก้'"
                   icon="i-lucide-upload"
                   color="primary"
                   variant="outline"
-                  :disabled="!isAdmin"
+                  :disabled="!isAdmin || uploadingLogo"
+                  :loading="uploadingLogo"
                   @click="triggerLogoUpload"
                 />
                 <UButton
-                  v-if="globalSettings.logoUrl"
+                  v-if="globalSettings.system_logo"
                   label="ลบโลโก้"
                   icon="i-lucide-trash-2"
                   color="red"
@@ -101,7 +102,7 @@
         <div class="space-y-6">
           <UFormGroup :label="t('settings.general.system_name')">
             <UInput 
-              v-model="globalSettings.systemName"
+              v-model="globalSettings.system_name"
               placeholder="ระบบจองรถยนต์"
               size="lg"
               :disabled="!isAdmin"
@@ -110,7 +111,7 @@
 
           <UFormGroup :label="t('settings.general.system_tagline')" class="mt-6">
             <UTextarea 
-              v-model="globalSettings.systemTagline"
+              v-model="globalSettings.system_tagline"
               placeholder="จัดการการจองอย่างมืออาชีพ"
               :rows="3"
               :disabled="!isAdmin"
@@ -122,8 +123,8 @@
             <p class="text-sm text-gray-600 mb-2">ตัวอย่างการแสดงผลสำหรับทุกคน:</p>
             <div class="flex items-center gap-3">
               <div class="flex-shrink-0">
-                <div v-if="globalSettings.logoUrl" class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                  <img :src="globalSettings.logoUrl" alt="Logo" class="w-8 h-8 object-contain" />
+                <div v-if="globalSettings.system_logo" class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                  <img :src="globalSettings.system_logo" alt="Logo" class="w-8 h-8 object-contain" />
                 </div>
                 <div v-else class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                   <UIcon name="i-lucide-car" class="size-6 text-white" />
@@ -131,10 +132,10 @@
               </div>
               <div class="min-w-0 flex-1">
                 <h1 class="font-bold text-lg text-gray-900 truncate">
-                  {{ globalSettings.systemName || 'ระบบจองรถยนต์' }}
+                  {{ globalSettings.system_name || 'ระบบจองรถยนต์' }}
                 </h1>
                 <p class="text-xs text-gray-600 truncate">
-                  {{ globalSettings.systemTagline || 'จัดการการจองอย่างมืออาชีพ' }}
+                  {{ globalSettings.system_tagline || 'จัดการการจองอย่างมืออาชีพ' }}
                 </p>
               </div>
             </div>
@@ -227,52 +228,116 @@ const emit = defineEmits<{
 
 // Logo Upload Functions
 const logoFileInput = ref(null)
+const uploadingLogo = ref(false)
+const { uploadLogo, deleteLogo } = useSystemSettings()
 
 function triggerLogoUpload() {
   logoFileInput.value?.click()
 }
 
-function handleLogoUpload(event) {
+async function handleLogoUpload(event) {
   const file = event.target.files[0]
   if (!file) return
 
   // ตรวจสอบสิทธิ์
   if (!props.isAdmin) {
-    alert('คุณไม่มีสิทธิ์ในการแก้ไขการตั้งค่าระบบ')
+    const toast = useToast()
+    toast.add({
+      title: 'ไม่มีสิทธิ์',
+      description: 'คุณไม่มีสิทธิ์ในการแก้ไขการตั้งค่าระบบ',
+      color: 'red'
+    })
     return
   }
 
   // ตรวจสอบขนาดไฟล์ (2MB)
   if (file.size > 2 * 1024 * 1024) {
-    alert('ขนาดไฟล์ใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 2MB')
+    const toast = useToast()
+    toast.add({
+      title: 'ไฟล์ใหญ่เกินไป',
+      description: 'กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 2MB',
+      color: 'red'
+    })
     return
   }
 
   // ตรวจสอบประเภทไฟล์
   if (!file.type.startsWith('image/')) {
-    alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น')
+    const toast = useToast()
+    toast.add({
+      title: 'ไฟล์ไม่ถูกต้อง',
+      description: 'กรุณาเลือกไฟล์รูปภาพเท่านั้น',
+      color: 'red'
+    })
     return
   }
 
-  // อ่านไฟล์และแสดง preview
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    props.globalSettings.logoUrl = e.target.result
-  }
-  reader.readAsDataURL(file)
+  uploadingLogo.value = true
 
-  console.log('อัพโหลดไฟล์ระบบ:', file.name)
+  try {
+    // อัพโหลดไฟล์ไปยัง server
+    const response = await uploadLogo(file)
+    
+    // อัพเดต logoUrl ด้วย URL จาก server
+    const config = useRuntimeConfig()
+    const API_BASE_URL = config.public.apiBase || 'http://localhost:3000/api'
+    const serverUrl = API_BASE_URL.replace('/api', '')
+    props.globalSettings.system_logo = serverUrl + response.data.logoUrl
+
+    const toast = useToast()
+    toast.add({
+      title: 'อัพโหลดสำเร็จ',
+      description: 'อัพโหลดโลโก้สำเร็จแล้ว',
+      color: 'green'
+    })
+
+    console.log('อัพโหลดไฟล์ระบบสำเร็จ:', response)
+  } catch (error) {
+    console.error('Error uploading logo:', error)
+    const toast = useToast()
+    toast.add({
+      title: 'เกิดข้อผิดพลาด',
+      description: 'ไม่สามารถอัพโหลดโลโก้ได้',
+      color: 'red'
+    })
+  } finally {
+    uploadingLogo.value = false
+    // ล้างค่า input
+    if (logoFileInput.value) {
+      logoFileInput.value.value = ''
+    }
+  }
 }
 
-function removeLogo() {
+async function removeLogo() {
   if (!props.isAdmin) {
-    alert('คุณไม่มีสิทธิ์ในการแก้ไขการตั้งค่าระบบ')
+    const toast = useToast()
+    toast.add({
+      title: 'ไม่มีสิทธิ์',
+      description: 'คุณไม่มีสิทธิ์ในการแก้ไขการตั้งค่าระบบ',
+      color: 'red'
+    })
     return
   }
-  
-  props.globalSettings.logoUrl = ''
-  if (logoFileInput.value) {
-    logoFileInput.value.value = ''
+
+  try {
+    await deleteLogo()
+    props.globalSettings.system_logo = ''
+    
+    const toast = useToast()
+    toast.add({
+      title: 'ลบสำเร็จ',
+      description: 'ลบโลโก้สำเร็จแล้ว',
+      color: 'green'
+    })
+  } catch (error) {
+    console.error('Error deleting logo:', error)
+    const toast = useToast()
+    toast.add({
+      title: 'เกิดข้อผิดพลาด',
+      description: 'ไม่สามารถลบโลโก้ได้',
+      color: 'red'
+    })
   }
 }
 

@@ -95,15 +95,32 @@ const currentUser = reactive({
   permissions: ['system:write', 'users:manage']
 })
 
+// Load user data from cookie (set by auth middleware)
+onMounted(() => {
+  const userCookie = useCookie('user-data')
+  if (userCookie.value) {
+    try {
+      const userData = JSON.parse(userCookie.value)
+      Object.assign(currentUser, userData)
+    } catch (error) {
+      console.error('Error parsing user data:', error)
+    }
+  }
+})
+
 const isAdmin = computed(() => {
   return currentUser.role === 'admin' || currentUser.permissions.includes('system:write')
 })
 
 // Global Settings (ส่วนที่มีผลกับทุกคนในระบบ)
 const globalSettings = reactive({
-  systemName: 'ระบบจองรถยนต์',
-  systemTagline: 'จัดการการจองอย่างมืออาชีพ',
-  logoUrl: '',
+  system_name: 'ระบบจองรถยนต์',
+  system_tagline: 'จัดการการจองอย่างมืออาชีพ',
+  system_logo: '',
+  system_primary_color: '#3b82f6',
+  system_timezone: 'Asia/Bangkok',
+  system_language: 'th',
+  system_currency: 'THB',
   sidebar: {
     backgroundColor: '#1f2937',
     textColor: '#ffffff',
@@ -230,32 +247,59 @@ async function testSystem() {
 }
 
 // Global Settings Functions
+const { updateSettings } = useSystemSettings()
+
 async function saveGlobalSettings() {
   if (!isAdmin.value) {
-    alert('คุณไม่มีสิทธิ์ในการบันทึกการตั้งค่าระบบ')
+    const toast = useToast()
+    toast.add({
+      title: 'ไม่มีสิทธิ์',
+      description: 'คุณไม่มีสิทธิ์ในการบันทึกการตั้งค่าระบบ',
+      color: 'red'
+    })
     return
   }
 
   savingGlobalSettings.value = true
   
   try {
-    // TODO: บันทึกการตั้งค่าระบบไปยัง API
-    console.log('บันทึกการตั้งค่าระบบ:', {
-      systemName: globalSettings.systemName,
-      systemTagline: globalSettings.systemTagline,
-      logoUrl: globalSettings.logoUrl
-    })
+    // บันทึกการตั้งค่าระบบไปยัง API
+    const settingsToSave = {
+      system_name: globalSettings.system_name,
+      system_tagline: globalSettings.system_tagline,
+      system_primary_color: globalSettings.system_primary_color,
+      system_timezone: globalSettings.system_timezone,
+      system_language: globalSettings.system_language,
+      system_currency: globalSettings.system_currency
+    }
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const response = await updateSettings(settingsToSave)
+    console.log('บันทึกการตั้งค่าระบบสำเร็จ:', response)
     
     // อัพเดต GlobalSidebar และ layout ทั้งหมด
     await updateGlobalBranding()
     
-    alert('บันทึกการตั้งค่าระบบเรียบร้อยแล้ว')
+    // แจ้งผลการบันทึก
+    const toast = useToast()
+    toast.add({
+      title: 'บันทึกสำเร็จ',
+      description: 'บันทึกการตั้งค่าระบบเรียบร้อยแล้ว',
+      color: 'green'
+    })
+    
+    // รีเฟรชหน้าเพื่อแสดงผลการเปลี่ยนแปลง
+    setTimeout(() => {
+      window.location.reload()
+    }, 1500)
+    
   } catch (error) {
     console.error('Error saving global settings:', error)
-    alert('เกิดข้อผิดพลาดในการบันทึกการตั้งค่า')
+    const toast = useToast()
+    toast.add({
+      title: 'เกิดข้อผิดพลาด',
+      description: error.message || 'ไม่สามารถบันทึกการตั้งค่าได้',
+      color: 'red'
+    })
   } finally {
     savingGlobalSettings.value = false
   }
@@ -303,10 +347,25 @@ function resetThemeSettings() {
 }
 
 // Load Global Settings on Mount
+const { getSettings } = useSystemSettings()
+
 onMounted(async () => {
   try {
-    // TODO: โหลดการตั้งค่าระบบจาก API
-    console.log('โหลดการตั้งค่าระบบ')
+    // โหลดการตั้งค่าระบบจาก API
+    const settings = await getSettings(true) // รวม auth header
+    
+    if (settings) {
+      // อัพเดตการตั้งค่า global
+      globalSettings.system_name = settings.system_name || 'ระบบจองรถยนต์'
+      globalSettings.system_tagline = settings.system_tagline || 'จัดการการจองอย่างมืออาชีพ'
+      globalSettings.system_logo = settings.system_logo || ''
+      globalSettings.system_primary_color = settings.system_primary_color || '#3b82f6'
+      globalSettings.system_timezone = settings.system_timezone || 'Asia/Bangkok'
+      globalSettings.system_language = settings.system_language || 'th'
+      globalSettings.system_currency = settings.system_currency || 'THB'
+      
+      console.log('โหลดการตั้งค่าระบบสำเร็จ:', settings)
+    }
   } catch (error) {
     console.error('Error loading global settings:', error)
   }

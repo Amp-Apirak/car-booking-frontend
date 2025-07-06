@@ -45,7 +45,7 @@
                 @click="openNotifications"
               />
 
-              <!-- เมนูโปรไฟล์ - แก้ไขให้ทำงานได้ -->
+              <!-- เมนูโปรไฟล์-->
               <UDropdown 
                 :items="profileMenuItems"
                 :popper="{ placement: 'bottom-end' }"

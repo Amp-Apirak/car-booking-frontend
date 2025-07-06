@@ -8,18 +8,24 @@
     <!-- ส่วน Header: Logo และชื่อระบบ -->
     <template #header="{ collapsed }">
       <div class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors" @click="navigateToHome">
-        <!-- Logo รถ -->
+        <!-- Logo รถ หรือ Logo ที่อัพโหลด -->
         <div class="flex items-center justify-center size-10 bg-primary rounded-lg shrink-0">
-          <UIcon name="i-lucide-car" class="size-6 text-white" />
+          <img 
+            v-if="globalSettings.system_logo" 
+            :src="globalSettings.system_logo" 
+            alt="Logo" 
+            class="size-8 object-contain rounded"
+          />
+          <UIcon v-else name="i-lucide-car" class="size-6 text-white" />
         </div>
         
         <!-- ชื่อระบบ (ซ่อนเมื่อ collapsed) -->
         <div v-if="!collapsed" class="min-w-0 flex-1">
           <h1 class="font-bold text-lg text-highlighted truncate">
-            {{ t('system.name') }}
+            {{ globalSettings.system_name }}
           </h1>
           <p class="text-xs text-muted truncate">
-            {{ t('system.tagline') }}
+            {{ globalSettings.system_tagline }}
           </p>
         </div>
       </div>
@@ -123,6 +129,30 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const route = useRoute()
+
+// Load system settings from API
+const { getSettings } = useSystemSettings()
+const globalSettings = ref({
+  system_name: 'ระบบจองรถยนต์',
+  system_tagline: 'จัดการการจองอย่างมืออาชีพ',
+  system_logo: ''
+})
+
+// Load settings from API on mount
+onMounted(async () => {
+  try {
+    const settings = await getSettings(false) // public settings เท่านั้น
+    if (settings) {
+      globalSettings.value.system_name = settings.system_name || 'ระบบจองรถยนต์'
+      globalSettings.value.system_tagline = settings.system_tagline || 'จัดการการจองอย่างมืออาชีพ'
+      globalSettings.value.system_logo = settings.system_logo || ''
+      
+      console.log('โหลดการตั้งค่าใน GlobalSidebar สำเร็จ:', settings)
+    }
+  } catch (error) {
+    console.error('Error loading settings in GlobalSidebar:', error)
+  }
+})
 
 // ฟังก์ชันสลับภาษา
 function switchLanguage(lang: string) {
