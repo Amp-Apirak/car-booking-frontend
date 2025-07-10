@@ -1,22 +1,57 @@
-// composables/useAuth.js
-// Authentication composable สำหรับจัดการ login/logout กับ real API
-
+/**
+ * Authentication composable สำหรับจัดการ login/logout กับ Backend API
+ * รองรับ JWT token, refresh token, และ user profile management
+ */
 export const useAuth = () => {
   const config = useRuntimeConfig()
   const API_BASE_URL = config.public.apiBase || 'http://localhost:4000/api'
+  
+  // สร้าง reactive state สำหรับ token
+  const token = ref(null)
+  const user = ref(null)
+  
+  // ดึง token และ user จาก cookies เมื่อ initialize
+  const initAuth = () => {
+    const authToken = useCookie('auth-token')
+    const userData = useCookie('user-data')
+    
+    if (authToken.value) {
+      token.value = authToken.value
+    }
+    
+    if (userData.value) {
+      try {
+        user.value = JSON.parse(userData.value)
+      } catch (error) {
+        console.error('Error parsing user data:', error)
+        user.value = null
+      }
+    }
+  }
+  
+  // เรียก initAuth เมื่อ composable ถูกสร้าง
+  initAuth()
 
-  // Login with real API
+  /**
+   * เข้าสู่ระบบด้วย username และ password
+   * @param {Object} credentials - ข้อมูลสำหรับเข้าสู่ระบบ
+   * @param {string} credentials.username - ชื่อผู้ใช้
+   * @param {string} credentials.password - รหัสผ่าน
+   * @returns {Promise<Object>} ผลลัพธ์การเข้าสู่ระบบ
+   */
   const login = async (credentials) => {
     try {
+      // เรียก API login
       const response = await $fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        body: {
+        body: JSON.stringify({
           username: credentials.username,
           password: credentials.password
-        }
+        })
       })
 
       if (response.accessToken) {
@@ -35,8 +70,12 @@ export const useAuth = () => {
           sameSite: 'lax'
         })
 
+        // บันทึก tokens
         authToken.value = response.accessToken
         refreshToken.value = response.refreshToken
+        
+        // อัปเดต reactive state
+        token.value = response.accessToken
 
         // ดึงข้อมูลผู้ใช้
         const userProfile = await getUserProfile(response.accessToken)
@@ -50,6 +89,9 @@ export const useAuth = () => {
         })
         
         userData.value = JSON.stringify(userProfile)
+        
+        // อัปเดต reactive state
+        user.value = userProfile
 
         return {
           success: true,
@@ -78,16 +120,21 @@ export const useAuth = () => {
     }
   }
 
-  // Get user profile
-  const getUserProfile = async (token) => {
+  /**
+   * ดึงข้อมูลโปรไฟล์ผู้ใช้จาก API
+   * @param {string} authToken - JWT token สำหรับการ authentication
+   * @returns {Promise<Object>} ข้อมูลโปรไฟล์ผู้ใช้
+   */
+  const getUserProfile = async (authToken) => {
     try {
       const response = await $fetch(`${API_BASE_URL}/users/profile`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
         }
       })
 
+      // จัดรูปแบบข้อมูลให้เป็นมาตรฐาน
       return {
         user_id: response.user_id,
         username: response.username,
@@ -97,10 +144,18 @@ export const useAuth = () => {
         name: `${response.first_name || ''} ${response.last_name || ''}`.trim() || response.username,
         role: response.role || 'user',
         organization_id: response.organization_id,
+        organization_name: response.organization_name,
         permissions: response.permissions || [],
-        avatar: response.avatar,
+        roles: response.roles || [],
+        avatar: response.avatar || response.avatar_path,
         phone: response.phone,
-        status: response.status
+        status: response.status,
+        gender: response.gender,
+        citizen_id: response.citizen_id,
+        address: response.address,
+        country: response.country,
+        province: response.province,
+        postal_code: response.postal_code
       }
     } catch (error) {
       console.error('Error fetching user profile:', error)
@@ -110,17 +165,22 @@ export const useAuth = () => {
         username: 'unknown',
         name: 'ผู้ใช้',
         role: 'user',
-        permissions: []
+        permissions: [],
+        roles: []
       }
     }
   }
 
-  // Logout with real API
+  /**
+   * ออกจากระบบและลบข้อมูล authentication ทั้งหมด
+   * @returns {Promise<void>}
+   */
   const logout = async () => {
     try {
       const authToken = useCookie('auth-token')
       const refreshToken = useCookie('refresh-token')
 
+      // เรียก API logout ถ้ามี token
       if (authToken.value && refreshToken.value) {
         await $fetch(`${API_BASE_URL}/auth/logout`, {
           method: 'POST',
@@ -137,7 +197,7 @@ export const useAuth = () => {
       console.error('Logout API error:', error)
       // ไม่ต้อง throw error เพราะเราต้องการให้ logout สำเร็จในทุกกรณี
     } finally {
-      // ลบ cookies ในทุกกรณี
+      // ลบ cookies และ reactive state ในทุกกรณี
       const authToken = useCookie('auth-token')
       const refreshToken = useCookie('refresh-token')
       const userData = useCookie('user-data')
@@ -145,6 +205,10 @@ export const useAuth = () => {
       authToken.value = null
       refreshToken.value = null
       userData.value = null
+      
+      // ล้าง reactive state
+      token.value = null
+      user.value = null
     }
   }
 
@@ -202,7 +266,10 @@ export const useAuth = () => {
     }
   }
 
-  // Check if user is authenticated
+  /**
+   * ตรวจสอบว่าผู้ใช้ได้รับการ authenticate แล้วหรือไม่
+   * @returns {boolean} true ถ้า authenticated, false ถ้าไม่
+   */
   const isAuthenticated = () => {
     const authToken = useCookie('auth-token')
     const userData = useCookie('user-data')
@@ -210,7 +277,10 @@ export const useAuth = () => {
     return !!(authToken.value && userData.value)
   }
 
-  // Get current user
+  /**
+   * ดึงข้อมูลผู้ใช้ปัจจุบันจาก cookies
+   * @returns {Object|null} ข้อมูลผู้ใช้หรือ null ถ้าไม่มี
+   */
   const getCurrentUser = () => {
     const userData = useCookie('user-data')
     
@@ -226,12 +296,72 @@ export const useAuth = () => {
     return null
   }
 
+  /**
+   * ตรวจสอบว่าผู้ใช้มีสิทธิ์ในการทำงานหนึ่งหรือไม่
+   * @param {string} permission - ชื่อสิทธิ์ที่ต้องการตรวจสอบ
+   * @returns {boolean} true ถ้ามีสิทธิ์, false ถ้าไม่มี
+   */
+  const hasPermission = (permission) => {
+    const currentUser = getCurrentUser()
+    
+    if (!currentUser || !currentUser.permissions) {
+      return false
+    }
+    
+    return currentUser.permissions.includes(permission)
+  }
+
+  /**
+   * ตรวจสอบว่าผู้ใช้มีบทบาทหนึ่งหรือไม่
+   * @param {string} role - ชื่อบทบาทที่ต้องการตรวจสอบ
+   * @returns {boolean} true ถ้ามีบทบาท, false ถ้าไม่มี
+   */
+  const hasRole = (role) => {
+    const currentUser = getCurrentUser()
+    
+    if (!currentUser) {
+      return false
+    }
+    
+    // ตรวจสอบจาก role field หรือ roles array
+    if (currentUser.role === role) {
+      return true
+    }
+    
+    if (currentUser.roles && Array.isArray(currentUser.roles)) {
+      return currentUser.roles.some(userRole => userRole.name === role)
+    }
+    
+    return false
+  }
+
+  /**
+   * ตรวจสอบว่าผู้ใช้เป็น admin หรือไม่
+   * @returns {boolean} true ถ้าเป็น admin, false ถ้าไม่ใช่
+   */
+  const isAdmin = () => {
+    return hasRole('admin')
+  }
+
+  // ส่งคืน functions และ reactive states ทั้งหมด
   return {
+    // Reactive states
+    token: readonly(token),
+    user: readonly(user),
+    
+    // Authentication methods
     login,
     logout,
     refreshAuthToken,
     getUserProfile,
+    
+    // Status checks
     isAuthenticated,
-    getCurrentUser
+    getCurrentUser,
+    
+    // Permission & Role checks
+    hasPermission,
+    hasRole,
+    isAdmin
   }
 }
