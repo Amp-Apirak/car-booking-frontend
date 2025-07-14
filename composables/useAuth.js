@@ -21,7 +21,12 @@ export const useAuth = () => {
     
     if (userData.value) {
       try {
-        user.value = JSON.parse(userData.value)
+        // ตรวจสอบว่าเป็น string หรือ object
+        if (typeof userData.value === 'string') {
+          user.value = JSON.parse(userData.value)
+        } else {
+          user.value = userData.value
+        }
       } catch (error) {
         console.error('Error parsing user data:', error)
         user.value = null
@@ -134,29 +139,38 @@ export const useAuth = () => {
         }
       })
 
+      console.log('🔍 Raw response from /users/profile:', response)
+
+      // Backend ส่งกลับเป็น { success: true, data: user }
+      const userResponse = response.data || response
+      console.log('🔍 User response data:', userResponse)
+
       // จัดรูปแบบข้อมูลให้เป็นมาตรฐาน
-      return {
-        user_id: response.user_id,
-        username: response.username,
-        email: response.email,
-        first_name: response.first_name,
-        last_name: response.last_name,
-        name: `${response.first_name || ''} ${response.last_name || ''}`.trim() || response.username,
-        role: response.role || 'user',
-        organization_id: response.organization_id,
-        organization_name: response.organization_name,
-        permissions: response.permissions || [],
-        roles: response.roles || [],
-        avatar: response.avatar || response.avatar_path,
-        phone: response.phone,
-        status: response.status,
-        gender: response.gender,
-        citizen_id: response.citizen_id,
-        address: response.address,
-        country: response.country,
-        province: response.province,
-        postal_code: response.postal_code
+      const userData = {
+        user_id: userResponse.user_id,
+        username: userResponse.username,
+        email: userResponse.email,
+        first_name: userResponse.first_name,
+        last_name: userResponse.last_name,
+        name: `${userResponse.first_name || ''} ${userResponse.last_name || ''}`.trim() || userResponse.username,
+        role: userResponse.role || 'user',
+        organization_id: userResponse.organization_id,
+        organization_name: userResponse.organization_name,
+        permissions: userResponse.permissions || [],
+        roles: userResponse.roles || [],
+        avatar: userResponse.avatar || userResponse.avatar_path,
+        phone: userResponse.phone,
+        status: userResponse.status,
+        gender: userResponse.gender,
+        citizen_id: userResponse.citizen_id,
+        address: userResponse.address,
+        country: userResponse.country,
+        province: userResponse.province,
+        postal_code: userResponse.postal_code
       }
+      
+      console.log('🔍 Processed userData:', userData)
+      return userData
     } catch (error) {
       console.error('Error fetching user profile:', error)
       // ถ้าไม่สามารถดึงข้อมูลผู้ใช้ได้ ให้ใช้ข้อมูลพื้นฐาน
@@ -286,7 +300,12 @@ export const useAuth = () => {
     
     if (userData.value) {
       try {
-        return JSON.parse(userData.value)
+        // ตรวจสอบว่าเป็น string หรือ object
+        if (typeof userData.value === 'string') {
+          return JSON.parse(userData.value)
+        } else {
+          return userData.value
+        }
       } catch (error) {
         console.error('Error parsing user data:', error)
         return null

@@ -84,6 +84,7 @@
 <script setup lang="ts">
 // กำหนด meta สำหรับหน้านี้
 definePageMeta({
-  title: 'หน้าหลัก'
+  title: 'หน้าหลัก',
+  middleware: 'auth'
 })
 </script>

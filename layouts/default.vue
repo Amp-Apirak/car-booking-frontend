@@ -46,20 +46,16 @@
               />
 
               <!-- เมนูโปรไฟล์-->
-              <UDropdown 
-                :items="profileMenuItems"
-                :popper="{ placement: 'bottom-end' }"
-              >
-                <UButton
-                  :avatar="{
-                    src: 'https://github.com/nuxt.png',
-                    alt: 'Admin',
-                  }"
-                  color="neutral"
-                  variant="ghost"
-                  size="sm"
-                />
-              </UDropdown>
+              <UButton
+                :avatar="{
+                  src: 'https://github.com/nuxt.png',
+                  alt: 'Admin',
+                }"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                @click="toggleProfileMenu"
+              />
             </div>
           </template>
         </UDashboardNavbar>
@@ -101,42 +97,7 @@ function switchLanguage(lang: string) {
   console.log("เปลี่ยนภาษาเป็น:", lang);
 }
 
-// เมนูโปรไฟล์ - ใช้ computed และ navigateTo
-const profileMenuItems = computed(() => [
-  [
-    {
-      label: t('menu.profile'),
-      icon: 'i-lucide-user',
-      to: '/profile'
-    },
-    {
-      label: t('menu.settings'),
-      icon: 'i-lucide-settings',
-      to: '/settings'
-    }
-  ],
-  [
-    {
-      label: 'โหมดมืด',
-      icon: 'i-lucide-moon',
-      shortcuts: ['⌘', 'D'],
-      click: () => {
-        console.log('สลับโหมดมืด');
-        toggleDarkMode();
-      }
-    }
-  ],
-  [
-    {
-      label: t('logout'),
-      icon: 'i-lucide-log-out',
-      click: () => {
-        console.log('ออกจากระบบ');
-        handleLogout();
-      }
-    }
-  ]
-]);
+// ปุ่มโปรไฟล์จะไปหน้า settings โดยตรง
 
 // หาชื่อหน้าจาก route meta หรือใช้ชื่อ default
 const pageTitle = computed(() => {
@@ -187,6 +148,12 @@ function toggleDarkMode() {
 function openNotifications() {
   console.log("เปิดการแจ้งเตือน");
   notificationCount.value = 0;
+}
+
+function toggleProfileMenu() {
+  console.log("เปิด/ปิดเมนูโปรไฟล์");
+  // TODO: เพิ่มเมนูโปรไฟล์ หรือนำไปหน้าโปรไฟล์
+  navigateTo("/settings");
 }
 
 function handleLogout() {

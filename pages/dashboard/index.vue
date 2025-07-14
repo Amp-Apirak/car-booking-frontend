@@ -189,6 +189,9 @@
 <script setup lang="ts">
 // ใช้ default layout (ไม่ต้องกำหนด layout แยก)
 // definePageMeta จะใช้ default layout โดยอัตโนมัติ
+definePageMeta({
+  middleware: 'auth'
+})
 
 // ข้อมูลตัวอย่างการจองล่าสุด
 const recentBookings = ref([

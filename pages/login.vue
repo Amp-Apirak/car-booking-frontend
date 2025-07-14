@@ -172,7 +172,9 @@ async function login() {
     })
     
     // เปลี่ยนเส้นทางไปหน้าหลัก
-    await navigateTo('/')
+    console.log('🔄 กำลัง redirect ไปหน้าหลัก...')
+    await navigateTo('/', { replace: true })
+    console.log('✅ Redirect สำเร็จ')
     
   } catch (error) {
     console.error('Login error:', error)

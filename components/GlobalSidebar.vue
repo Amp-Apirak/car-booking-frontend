@@ -199,23 +199,23 @@ const mainMenuItems = computed((): NavigationMenuItem[][] => [[
   {
     label: t('menu.cars'),
     icon: 'i-lucide-car',
-    active: isActive('/cars'),
+    active: isActive('/vehicles'),
     children: [
       {
         label: t('submenu.cars.list'),
-        to: '/cars'
+        to: '/vehicles'
       },
       {
         label: t('submenu.cars.brand'),
-        to: '/cars/brand'
+        to: '/vehicles/brand'
       },
       {
         label: t('submenu.cars.model'),
-        to: '/cars/model'
+        to: '/vehicles/model'
       },
       {
         label: t('submenu.cars.accessories'),
-        to: '/cars/accessories'
+        to: '/vehicles/accessories'
       }
     ]
   },
