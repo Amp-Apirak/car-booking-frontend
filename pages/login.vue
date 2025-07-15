@@ -1,14 +1,14 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
     <!-- Animated Background Elements -->
     <div class="absolute inset-0">
       <!-- Floating shapes -->
-      <div class="absolute top-20 left-20 w-72 h-72 bg-blue-500 bg-opacity-10 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-      <div class="absolute top-40 right-20 w-72 h-72 bg-purple-500 bg-opacity-10 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-      <div class="absolute bottom-20 left-40 w-72 h-72 bg-pink-500 bg-opacity-10 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+      <div class="absolute top-20 left-20 w-72 h-72 bg-blue-400 bg-opacity-20 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-blob"></div>
+      <div class="absolute top-40 right-20 w-72 h-72 bg-purple-400 bg-opacity-20 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-blob animation-delay-2000"></div>
+      <div class="absolute bottom-20 left-40 w-72 h-72 bg-pink-400 bg-opacity-20 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-blob animation-delay-4000"></div>
       
       <!-- Grid pattern -->
-      <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      <div class="absolute inset-0 bg-grid-pattern opacity-10"></div>
     </div>
 
     <!-- Main Content -->
@@ -18,36 +18,36 @@
         <div class="text-center">
           <!-- Logo Container -->
           <div class="mx-auto relative">
-            <div class="w-20 h-20 mx-auto bg-gradient-to-r from-blue-400 to-purple-500 rounded-2xl flex items-center justify-center shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-300">
-              <UIcon name="i-lucide-car" class="size-10 text-white" />
+            <div class="w-24 h-24 mx-auto bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl flex items-center justify-center shadow-xl transform hover:scale-105 transition-all duration-300">
+              <UIcon name="i-lucide-car" class="size-12 text-white" />
             </div>
             <!-- Glow effect -->
-            <div class="absolute inset-0 w-20 h-20 mx-auto bg-gradient-to-r from-blue-400 to-purple-500 rounded-2xl opacity-50 blur-lg animate-pulse"></div>
+            <div class="absolute inset-0 w-24 h-24 mx-auto bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl opacity-30 blur-lg animate-pulse"></div>
           </div>
           
-          <h2 class="mt-8 text-4xl font-bold text-white mb-2">
+          <h2 class="mt-8 text-4xl font-bold text-gray-800 mb-2">
             ยินดีต้อนรับ
           </h2>
-          <p class="text-blue-200 text-lg mb-8">
+          <p class="text-gray-600 text-lg mb-8">
             ระบบจัดการการจองรถยนต์
           </p>
         </div>
 
         <!-- Login Form -->
-        <div class="bg-white bg-opacity-10 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-white border-opacity-20">
+        <div class="bg-white bg-opacity-90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-gray-200">
           <form @submit.prevent="login" class="space-y-6">
             <!-- Username Field -->
             <div class="space-y-2">
-              <label class="block text-sm font-medium text-blue-100">ชื่อผู้ใช้</label>
+              <label class="block text-sm font-medium text-gray-700">ชื่อผู้ใช้</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <UIcon name="i-lucide-user" class="size-5 text-blue-300" />
+                  <UIcon name="i-lucide-user" class="size-5 text-gray-400" />
                 </div>
                 <input
                   v-model="form.username"
                   type="text"
                   required
-                  class="block w-full pl-12 pr-4 py-4 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                  class="block w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:bg-gray-100"
                   placeholder="กรอกชื่อผู้ใช้"
                 />
               </div>
@@ -55,16 +55,16 @@
 
             <!-- Password Field -->
             <div class="space-y-2">
-              <label class="block text-sm font-medium text-blue-100">รหัสผ่าน</label>
+              <label class="block text-sm font-medium text-gray-700">รหัสผ่าน</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <UIcon name="i-lucide-lock" class="size-5 text-blue-300" />
+                  <UIcon name="i-lucide-lock" class="size-5 text-gray-400" />
                 </div>
                 <input
                   v-model="form.password"
                   type="password"
                   required
-                  class="block w-full pl-12 pr-4 py-4 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                  class="block w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:bg-gray-100"
                   placeholder="กรอกรหัสผ่าน"
                 />
               </div>
@@ -75,7 +75,7 @@
               <button
                 type="submit"
                 :disabled="isLoading"
-                class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transform transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+                class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transform transition-all duration-200 hover:scale-[1.02] shadow-lg hover:shadow-xl"
               >
                 <span class="absolute left-0 inset-y-0 flex items-center pl-3">
                   <UIcon 
@@ -89,45 +89,10 @@
           </form>
         </div>
 
-        <!-- Login Help -->
-        <div class="bg-white bg-opacity-5 backdrop-blur-sm rounded-2xl p-6 border border-white border-opacity-10">
-          <div class="text-center">
-            <div class="flex items-center justify-center mb-4">
-              <UIcon name="i-lucide-help-circle" class="size-5 text-blue-300 mr-2" />
-              <h3 class="text-sm font-semibold text-blue-100">ต้องการความช่วยเหลือ?</h3>
-            </div>
-            
-            <div class="space-y-3 text-sm">
-              <div class="bg-white bg-opacity-10 rounded-lg p-4 border border-white border-opacity-10">
-                <div class="flex items-center space-x-3">
-                  <div class="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-lg flex items-center justify-center">
-                    <UIcon name="i-lucide-key" class="size-4 text-white" />
-                  </div>
-                  <div class="text-left">
-                    <div class="font-medium text-white">ลืมรหัสผ่าน?</div>
-                    <div class="text-blue-200 text-xs">ติดต่อผู้ดูแลระบบเพื่อรีเซ็ตรหัสผ่าน</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="bg-white bg-opacity-10 rounded-lg p-4 border border-white border-opacity-10">
-                <div class="flex items-center space-x-3">
-                  <div class="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-500 rounded-lg flex items-center justify-center">
-                    <UIcon name="i-lucide-user-plus" class="size-4 text-white" />
-                  </div>
-                  <div class="text-left">
-                    <div class="font-medium text-white">ยังไม่มีบัญชี?</div>
-                    <div class="text-blue-200 text-xs">ติดต่อผู้ดูแลระบบเพื่อสร้างบัญชีใหม่</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <!-- Footer -->
-        <div class="text-center">
-          <p class="text-blue-200 text-sm">
+        <div class="text-center mt-8">
+          <p class="text-gray-500 text-sm">
             © 2024 ระบบจองรถยนต์ | ทุกสิทธิ์ได้รับการคุ้มครอง
           </p>
         </div>
@@ -220,8 +185,8 @@ async function login() {
 
 .bg-grid-pattern {
   background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-  background-size: 20px 20px;
+    linear-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.1) 1px, transparent 1px);
+  background-size: 30px 30px;
 }
 </style>

@@ -94,14 +94,60 @@
       />
     </template>
 
-    <!-- ส่วน Footer: ข้อมูลผู้ใช้ -->
+    <!-- ส่วน Footer: ข้อมูลผู้ใช้จริง -->
     <template #footer="{ collapsed }">
+      <!-- แสดงข้อมูลผู้ใช้แบบเต็ม เมื่อไม่ collapse -->
+      <div v-if="!collapsed && currentUser" class="px-3 py-2 border-t border-gray-200">
+        <div class="flex items-center space-x-3">
+          <!-- รูป Avatar พร้อม fallback และ error handling -->
+          <UAvatar
+            :src="avatarUrl"
+            :alt="displayName"
+            :ui="{ rounded: 'rounded-full' }"
+            size="md"
+          />
+          
+          <!-- ข้อมูลผู้ใช้ -->
+          <div class="flex-1 min-w-0">
+            <!-- ชื่อผู้ใช้ -->
+            <p class="text-sm font-medium text-gray-900 truncate">
+              {{ displayName }}
+            </p>
+            <!-- บทบาท -->
+            <p class="text-xs text-gray-500 truncate">
+              {{ userRole }}
+            </p>
+          </div>
+          
+          <!-- สถานะออนไลน์ -->
+          <UBadge 
+            :label="userStatus.label" 
+            :color="userStatus.color" 
+            variant="subtle" 
+            size="xs" 
+          />
+        </div>
+        
+        <!-- ปุ่มโปรไฟล์ -->
+        <UButton
+          label="ดูโปรไฟล์"
+          icon="i-lucide-user"
+          color="neutral"
+          variant="ghost"
+          size="xs"
+          class="w-full mt-2"
+          @click="openProfileMenu"
+        />
+      </div>
+
+      <!-- แสดงแบบง่ายเมื่อ collapse หรือไม่มีข้อมูลผู้ใช้ -->
       <UButton
+        v-else
         :avatar="{ 
-          src: 'https://github.com/nuxt.png',
-          alt: t('system.admin')
+          src: avatarUrl,
+          alt: displayName
         }"
-        :label="collapsed ? undefined : t('system.admin')"
+        :label="collapsed ? undefined : displayName"
         color="neutral"
         variant="ghost"
         class="w-full"
@@ -111,8 +157,8 @@
         <!-- Status indicator เมื่อไม่ collapse -->
         <template v-if="!collapsed" #trailing>
           <UBadge 
-            :label="t('system.online')" 
-            color="success" 
+            :label="userStatus.label" 
+            :color="userStatus.color" 
             variant="subtle" 
             size="sm" 
           />
@@ -130,6 +176,12 @@ const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const route = useRoute()
 
+// ดึงข้อมูลผู้ใช้จาก useAuth composable
+const { getCurrentUser, isAuthenticated } = useAuth()
+
+// สร้าง reactive data สำหรับเก็บข้อมูลผู้ใช้ปัจจุบัน
+const currentUser = ref(null)
+
 // Load system settings from API
 const { getSettings } = useSystemSettings()
 const globalSettings = ref({
@@ -138,19 +190,157 @@ const globalSettings = ref({
   system_logo: ''
 })
 
+// ฟังก์ชันโหลดข้อมูลผู้ใช้ปัจจุบัน
+const loadCurrentUser = () => {
+  try {
+    // ตรวจสอบว่าผู้ใช้ได้รับการ authenticate หรือไม่
+    if (isAuthenticated()) {
+      // ดึงข้อมูลผู้ใช้จาก cookies/storage
+      const userData = getCurrentUser()
+      currentUser.value = userData
+      console.log('🔍 โหลดข้อมูลผู้ใช้ใน GlobalSidebar สำเร็จ:', userData)
+    } else {
+      // ถ้าไม่ได้ authenticate ให้ clear ข้อมูล
+      currentUser.value = null
+      console.log('⚠️ ผู้ใช้ยังไม่ได้ authenticate')
+    }
+  } catch (error) {
+    console.error('❌ Error loading current user in GlobalSidebar:', error)
+    currentUser.value = null
+  }
+}
+
 // Load settings from API on mount
 onMounted(async () => {
   try {
+    // โหลดการตั้งค่าระบบ
     const settings = await getSettings(false) // public settings เท่านั้น
     if (settings) {
       globalSettings.value.system_name = settings.system_name || 'ระบบจองรถยนต์'
       globalSettings.value.system_tagline = settings.system_tagline || 'จัดการการจองอย่างมืออาชีพ'
       globalSettings.value.system_logo = settings.system_logo || ''
       
-      console.log('โหลดการตั้งค่าใน GlobalSidebar สำเร็จ:', settings)
+      console.log('📊 โหลดการตั้งค่าใน GlobalSidebar สำเร็จ:', settings)
+    }
+
+    // โหลดข้อมูลผู้ใช้ปัจจุบัน
+    loadCurrentUser()
+  } catch (error) {
+    console.error('❌ Error loading settings in GlobalSidebar:', error)
+    // ถึงแม้ settings จะโหลดไม่ได้ ก็ยังโหลดข้อมูลผู้ใช้
+    loadCurrentUser()
+  }
+})
+
+// ฟังก์ชันสร้าง Avatar URL จากตัวอักษรแรกของชื่อ
+const generateInitialsAvatar = (name: string): string => {
+  if (!name) return ''
+  
+  // ดึงตัวอักษรแรกของชื่อและนามสกุล
+  const initials = name
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase())
+    .slice(0, 2) // เอาแค่ 2 ตัวแรก
+    .join('')
+  
+  // สร้าง URL สำหรับ UI Avatars (บริการฟรีสร้าง avatar จากตัวอักษร)
+  const backgroundColor = getAvatarColor(name) // สีพื้นหลังจากชื่อ
+  const textColor = 'FFFFFF' // ข้อความสีขาว
+  
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&size=128&background=${backgroundColor}&color=${textColor}&bold=true`
+}
+
+// ฟังก์ชันสร้างสีพื้นหลัง Avatar จากชื่อ (เพื่อให้ผู้ใช้แต่ละคนมีสีที่แตกต่างกัน)
+const getAvatarColor = (name: string): string => {
+  const colors = [
+    '3B82F6', // Blue
+    '10B981', // Green  
+    'F59E0B', // Yellow
+    'EF4444', // Red
+    '8B5CF6', // Purple
+    'F97316', // Orange
+    '06B6D4', // Cyan
+    'EC4899'  // Pink
+  ]
+  
+  // ใช้ hash ของชื่อเพื่อเลือกสี
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  
+  return colors[Math.abs(hash) % colors.length]
+}
+
+// Computed property สำหรับ Avatar URL ที่มี fallback และ error handling
+const avatarUrl = computed(() => {
+  try {
+    // ลำดับการ fallback:
+    // 1. รูปจาก API ถ้ามี
+    // 2. สร้าง avatar จากตัวอักษรแรกของชื่อ  
+    // 3. รูป default สุดท้าย
+    if (currentUser.value?.avatar && currentUser.value.avatar.trim() !== '') {
+      return currentUser.value.avatar
+    } else if (currentUser.value?.name && currentUser.value.name.trim() !== '') {
+      return generateInitialsAvatar(currentUser.value.name)
+    } else {
+      return 'https://github.com/nuxt.png' // Default fallback
     }
   } catch (error) {
-    console.error('Error loading settings in GlobalSidebar:', error)
+    console.error('❌ Error generating avatar URL:', error)
+    return 'https://github.com/nuxt.png' // Safe fallback
+  }
+})
+
+// Computed property สำหรับชื่อแสดงผล
+const displayName = computed(() => {
+  try {
+    if (currentUser.value?.name && currentUser.value.name.trim() !== '') {
+      return currentUser.value.name
+    } else if (currentUser.value?.username && currentUser.value.username.trim() !== '') {
+      return currentUser.value.username
+    } else {
+      return 'ผู้ใช้'
+    }
+  } catch (error) {
+    console.error('❌ Error getting display name:', error)
+    return 'ผู้ใช้'
+  }
+})
+
+// Computed property สำหรับบทบาท
+const userRole = computed(() => {
+  try {
+    if (currentUser.value?.role && currentUser.value.role.trim() !== '') {
+      // แปลงบทบาทเป็นภาษาไทย
+      const roleTranslations = {
+        'admin': 'ผู้ดูแลระบบ',
+        'manager': 'ผู้จัดการ', 
+        'user': 'ผู้ใช้งาน',
+        'driver': 'คนขับ',
+        'staff': 'เจ้าหน้าที่'
+      }
+      return roleTranslations[currentUser.value.role] || currentUser.value.role
+    } else {
+      return 'ผู้ใช้งาน'
+    }
+  } catch (error) {
+    console.error('❌ Error getting user role:', error)
+    return 'ผู้ใช้งาน'
+  }
+})
+
+// Computed property สำหรับสถานะ
+const userStatus = computed(() => {
+  try {
+    if (currentUser.value?.status === 'active') {
+      return { label: 'ออนไลน์', color: 'success' }
+    } else {
+      return { label: 'ออฟไลน์', color: 'gray' }
+    }
+  } catch (error) {
+    console.error('❌ Error getting user status:', error)
+    return { label: 'ออฟไลน์', color: 'gray' }
   }
 })
 
@@ -307,10 +497,18 @@ function navigateToHome() {
   router.push('/')
 }
 
-function handleLogout() {
-  // TODO: ฟังก์ชันออกจากระบบ
-  console.log('ออกจากระบบ')
-  router.push('/')
+async function handleLogout() {
+  try {
+    const { logout } = useAuth()
+    await logout()
+    
+    // เปลี่ยนเส้นทางไปหน้า login
+    await navigateTo('/login')
+  } catch (error) {
+    console.error('Logout error:', error)
+    // ถ้าเกิดข้อผิดพลาด ให้ไปหน้า login อยู่ดี
+    await navigateTo('/login')
+  }
 }
 
 // ฟัง keyboard shortcut
